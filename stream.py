@@ -2,7 +2,7 @@
 from flask import Flask, request, Response, send_file
 import os
 
-VIDEO_PATH = "The Amazing Spiderman (2012)/The.Amazing.Spiderman.2012.720p.BrRip.x264.YIFY.mp4"
+VIDEO_PATH = "War 2 (2025) [1080p] [WEBRip] [x265] [10bit] [5.1] [YTS.MX]/War.2.2025.1080p.WEBRip.x265.10bit.AAC5.1-[YTS.MX].mp4"
 app = Flask(__name__)
 
 
