@@ -3,7 +3,7 @@ from flask import Flask, send_file
 app = Flask(__name__)
 
 # Hardcoded file path
-file_path = "The Amazing Spiderman (2012)/The.Amazing.Spiderman.2012.720p.BrRip.x264.YIFY.mp4"  # replace with your file
+file_path = "Dark - Season 3 (2020) [1080p]/Dark - S03E01 - Deja-vu.mkv"  # replace with your file
 
 @app.route('/')
 def download():
