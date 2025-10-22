@@ -13,3 +13,5 @@
 ```pip install flask```
 
 ```wget https://example.com/file.zip```
+
+```python stream.py filename.mp4```
