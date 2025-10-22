@@ -2,7 +2,7 @@
 
 ```pip install libtorrent```
 
-```python tor.py "magnet:?link"```
+```python tor.py```
 
 ---
 
@@ -10,4 +10,4 @@
 
 ```wget https://example.com/file.zip```
 
-```python stream.py filename.mp4```
+```python stream.py```
