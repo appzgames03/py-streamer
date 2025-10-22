@@ -1,14 +1,8 @@
 # video_server.py
 from flask import Flask, request, Response, send_file
 import os
-import sys
 
-# Check if an argument is passed
-if len(sys.argv) < 2:
-    print("Please provide an argument.")
-    sys.exit(1)
-
-VIDEO_PATH = sys.argv[1]
+VIDEO_PATH = "video.mp4"
 app = Flask(__name__)
 
 
