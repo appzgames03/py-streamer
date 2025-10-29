@@ -3,7 +3,7 @@ import time
 
 
 # Replace with your magnet link
-magnet_link = "magnet:?xt=urn:btih:3761370BCC46F33F94E2DD9D9976FDC1A0130532&dn=%5BBitsearch.to%5D%20Dark%20-%20Season%203%20(2020)%20%5B1080p%5D&tr=udp%3A%2F%2Ftracker2.dler.com%3A80%2Fannounce&tr=udp%3A%2F%2Fwww.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fpow7.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.bitsearch.to%3A1337%2Fannounce"
+magnet_link = "magnet:?"
 
 # Create a session
 ses = lt.session()
