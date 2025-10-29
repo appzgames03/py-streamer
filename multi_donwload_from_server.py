@@ -4,7 +4,7 @@ import os
 app = Flask(__name__)
 
 # Folder containing your files
-FOLDER_PATH = "Dark - Season 3 (2020) [1080p]"
+FOLDER_PATH = "<folder path>"
 
 # Get all files (sorted for consistent numbering)
 FILES = [f for f in sorted(os.listdir(FOLDER_PATH)) if os.path.isfile(os.path.join(FOLDER_PATH, f))]
