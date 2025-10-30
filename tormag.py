@@ -3,7 +3,7 @@ import time
 
 
 # Replace with your magnet link
-magnet_link = "mag_link"
+magnet_link = ""
 
 # Create a session
 ses = lt.session()
