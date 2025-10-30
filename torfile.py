@@ -3,7 +3,7 @@ import time
 import os
 
 # Path to your .torrent file
-torrent_file = "tor_file"
+torrent_file = ""
 
 # Folder to save the downloaded content
 save_path = "./"
