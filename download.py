@@ -3,7 +3,7 @@ from flask import Flask, send_file
 app = Flask(__name__)
 
 # Hardcoded file path
-file_path = "<file path>"  # replace with your file
+file_path = ""  # replace with your file
 
 @app.route('/')
 def download():
