@@ -1,15 +1,17 @@
 # py-streamer
 
-```pip install libtorrent```
+```pip install libtorrent flask```
+
+---
 
 ```python tor.py```
 
 ---
 
-```pip install flask```
-
 ```wget https://example.com/file.zip```
 
-```python stream.py```
+---
+
+```python download.py```
 
 ---
