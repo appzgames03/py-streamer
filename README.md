@@ -8,7 +8,7 @@
 
 ---
 
-```wget https://example.com/file.zip```
+```wget 'https://example.com/file.zip'```
 
 ---
 
