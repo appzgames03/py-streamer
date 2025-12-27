@@ -1,7 +1,7 @@
-from flask import Flask, request, Response, abort, render_template_string
+from flask import Flask, request, Response, abort, render_template_string, send_file
 import os
 
-BASE_DIR = "./"   # ← CHANGE THIS
+BASE_DIR = "./"
 CHUNK_SIZE = 4096
 
 app = Flask(__name__)
@@ -50,6 +50,7 @@ def browse():
               {% else %}
                 🎬 {{ e.name }}
                 [<a href="/stream?path={{ e.rel }}">Stream</a>]
+                [<a href="/download?path={{ e.rel }}">Download</a>]
               {% endif %}
             </li>
           {% endfor %}
@@ -81,7 +82,7 @@ def stream_page():
     <html>
       <body>
         <h2>{{ filename }}</h2>
-        <p><a href="/">⬅ Back to browser</a></p>
+        <p><a href="/?path={{ parent }}">⬅ Back</a></p>
 
         <video width="720" controls autoplay>
           <source src="/video?path={{ rel_path }}" type="video/mp4">
@@ -93,7 +94,8 @@ def stream_page():
     return render_template_string(
         html,
         filename=os.path.basename(full_path),
-        rel_path=rel_path
+        rel_path=rel_path,
+        parent=os.path.dirname(rel_path)
     )
 
 
@@ -135,6 +137,24 @@ def video_stream():
     response.headers.add("Accept-Ranges", "bytes")
     response.headers.add("Content-Length", str(length))
     return response
+
+
+@app.route("/download")
+def download_file():
+    rel_path = request.args.get("path")
+    if not rel_path:
+        abort(400)
+
+    full_path = safe_path(rel_path)
+
+    if not os.path.isfile(full_path):
+        abort(404)
+
+    return send_file(
+        full_path,
+        as_attachment=True,
+        download_name=os.path.basename(full_path)
+    )
 
 
 if __name__ == "__main__":
