@@ -28,4 +28,4 @@ while handle.status().state != lt.torrent_status.seeding:
           f"Peers: {s.num_peers}")
     time.sleep(1)
 
-printf(f"Download complete! => {torrent_file}")
+print(f"Download complete! => {torrent_file[:150]}")
