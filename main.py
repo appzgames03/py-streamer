@@ -14,6 +14,36 @@ def safe_path(rel_path):
     return full_path
 
 
+BASE_STYLE = """
+<style>
+  body {
+    background-color: #000;
+    color: #ddd;
+    font-family: Arial, sans-serif;
+  }
+  a {
+    color: #4da3ff;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  li {
+    margin: 8px 0;
+  }
+  video {
+    display: block;
+    margin: 20px auto;
+    background: black;
+  }
+</style>
+"""
+
+
 @app.route("/")
 def browse():
     rel_path = request.args.get("path", "")
@@ -35,6 +65,7 @@ def browse():
 
     html = """
     <html>
+      <head>{{ style|safe }}</head>
       <body>
         <h2>Browsing: /{{ rel_path }}</h2>
 
@@ -61,6 +92,7 @@ def browse():
 
     return render_template_string(
         html,
+        style=BASE_STYLE,
         entries=entries,
         rel_path=rel_path,
         parent=parent
@@ -80,6 +112,7 @@ def stream_page():
 
     html = """
     <html>
+      <head>{{ style|safe }}</head>
       <body>
         <h2>{{ filename }}</h2>
         <p><a href="/?path={{ parent }}">⬅ Back</a></p>
@@ -93,6 +126,7 @@ def stream_page():
 
     return render_template_string(
         html,
+        style=BASE_STYLE,
         filename=os.path.basename(full_path),
         rel_path=rel_path,
         parent=os.path.dirname(rel_path)
