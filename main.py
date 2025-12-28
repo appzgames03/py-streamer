@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, abort, render_template_string, send_file
 import os
 
-BASE_DIR = "./"
+BASE_DIR = "./downloads"
 CHUNK_SIZE = 4096
 
 app = Flask(__name__)
