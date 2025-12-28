@@ -11,7 +11,7 @@ ses.listen_on(6881, 6891)
 
 # Add the magnet link
 params = {
-    'save_path': './',  # folder where files will be saved
+    'save_path': './downloads',  # folder where files will be saved
     'storage_mode': lt.storage_mode_t.storage_mode_sparse
 }
 handle = lt.add_magnet_uri(ses, magnet_link, params)
