@@ -6,7 +6,7 @@ import os
 torrent_file = ""
 
 # Folder to save the downloaded content
-save_path = "./"
+save_path = "./downloads"
 os.makedirs(save_path, exist_ok=True)
 
 # Create a session
