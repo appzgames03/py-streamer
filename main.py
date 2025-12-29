@@ -20,10 +20,13 @@ BASE_STYLE = """
     background-color: #000;
     color: #ddd;
     font-family: Arial, sans-serif;
+    font-size: 4em;
+    line-height: 1.6;
   }
   a {
     color: #4da3ff;
     text-decoration: none;
+    font-size: 1em;
   }
   a:hover {
     text-decoration: underline;
@@ -33,7 +36,8 @@ BASE_STYLE = """
     padding-left: 0;
   }
   li {
-    margin: 8px 0;
+    margin: 10px 0;
+    font-size: 1em;
   }
   video {
     display: block;
@@ -192,4 +196,4 @@ def download_file():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8010, debug=False)
+    app.run(host="0.0.0.0", port=8080, debug=False)
