@@ -20,7 +20,7 @@ BASE_STYLE = """
     background-color: #000;
     color: #ddd;
     font-family: Arial, sans-serif;
-    font-size: 4em;
+    font-size: 2em;
     line-height: 1.6;
   }
   a {
