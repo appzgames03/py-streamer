@@ -88,6 +88,7 @@ def browse():
                 [<a href="/download?path={{ e.rel }}">Download</a>]
               {% endif %}
             </li>
+            <hr>
           {% endfor %}
         </ul>
       </body>
