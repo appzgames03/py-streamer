@@ -90,8 +90,6 @@ def browse():
                 📁 <a href="/?path={{ e.rel }}">{{ e.name }}</a>
                   {% if e.zip_exists %}
                     [<span style="color:#4CAF50;">Zipped</span>]
-                  {% else %}
-                    [<a href="/start-zip?path={{ e.rel }}">ZIP</a>]
                   {% endif %}
               {% else %}
                 🎬 {{ e.name }}
@@ -207,47 +205,6 @@ def download_file():
         as_attachment=True,
         download_name=os.path.basename(full_path)
     )
-
-@app.route("/start-zip")
-def start_zip():
-    rel_path = request.args.get("path")
-    if not rel_path:
-        abort(400)
-
-    folder_path = safe_path(rel_path)
-    if not os.path.isdir(folder_path):
-        abort(404)
-
-    zip_folder_with_progress(folder_path)
-
-    return "ZIP completed. Check server terminal and filesystem.", 200
-
-
-def zip_folder_with_progress(folder_path):
-    folder_path = os.path.abspath(folder_path)
-    parent = os.path.dirname(folder_path)
-    name = os.path.basename(folder_path.rstrip(os.sep))
-    zip_path = os.path.join(parent, f"{name}.zip")
-
-    files = []
-    for root, _, filenames in os.walk(folder_path):
-        for f in filenames:
-            files.append(os.path.join(root, f))
-
-    total = len(files)
-    print(f"[ZIP] Zipping {folder_path}")
-    print(f"[ZIP] Output: {zip_path}")
-    print(f"[ZIP] Total files: {total}")
-
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_STORED) as zipf:
-        for i, file in enumerate(files, start=1):
-            arcname = os.path.relpath(file, parent)
-            zipf.write(file, arcname)
-
-            percent = int((i / total) * 100) if total else 100
-            print(f"[ZIP] {percent}% ({i}/{total}) - {arcname}")
-
-    print("[ZIP] Completed")
 
 
 if __name__ == "__main__":
