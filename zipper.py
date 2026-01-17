@@ -1,7 +1,7 @@
 import os
 import zipfile
 
-folder_path = "downloads/Arcane.S02.1080p.WEBRip.10bit.DDP5.1.x265-HODL"
+folder_path = ""
 
 def zip_folder_with_progress(folder_path):
     if not os.path.isdir(folder_path):
