@@ -60,10 +60,15 @@ def browse():
     entries = []
     for name in sorted(os.listdir(current_path)):
         full = os.path.join(current_path, name)
+
+        is_dir = os.path.isdir(full)
+        zip_path = os.path.join(current_path, f"{name}.zip")
+
         entries.append({
             "name": name,
-            "is_dir": os.path.isdir(full),
-            "rel": os.path.join(rel_path, name)
+            "is_dir": is_dir,
+            "rel": os.path.join(rel_path, name),
+            "zip_exists": is_dir and os.path.isfile(zip_path)
         })
 
     parent = os.path.dirname(rel_path) if rel_path else None
@@ -83,7 +88,11 @@ def browse():
             <li>
               {% if e.is_dir %}
                 📁 <a href="/?path={{ e.rel }}">{{ e.name }}</a>
-                [<a href="/start-zip?path={{ e.rel }}">ZIP</a>]
+                  {% if e.zip_exists %}
+                    [<span style="color:#4CAF50;">Zipped</span>]
+                  {% else %}
+                    [<a href="/start-zip?path={{ e.rel }}">ZIP</a>]
+                  {% endif %}
               {% else %}
                 🎬 {{ e.name }}
                   {% if not e.name.endswith('.zip') %}
