@@ -1,18 +1,20 @@
 import os
+import sys
 import zipfile
 
 folder_path = ""
 
-def zip_folder_with_progress(folder_path):
+def zip_folder_with_progress():
+
     if not os.path.isdir(folder_path):
         print("Error: not a directory")
         return
 
-    folder_path = os.path.abspath(folder_path)
     parent = os.path.dirname(folder_path)
     name = os.path.basename(folder_path.rstrip(os.sep))
     zip_path = os.path.join(parent, f"{name}.zip")
 
+    # collect all files first (for progress)
     files = []
     for root, _, filenames in os.walk(folder_path):
         for f in filenames:
@@ -34,4 +36,4 @@ def zip_folder_with_progress(folder_path):
     print("ZIP completed successfully.")
 
 if __name__ == "__main__":
-    zip_folder_with_progress(folder_path)
+    zip_folder_with_progress()
