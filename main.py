@@ -48,6 +48,24 @@ BASE_STYLE = """
 </style>
 """
 
+def get_size(path):
+    """Return human readable size for file or directory."""
+    if os.path.isfile(path):
+        size = os.path.getsize(path)
+    else:
+        size = 0
+        for root, dirs, files in os.walk(path):
+            for f in files:
+                fp = os.path.join(root, f)
+                if os.path.exists(fp):
+                    size += os.path.getsize(fp)
+
+    # convert to readable format
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024:
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} PB"
 
 @app.route("/")
 def browse():
@@ -68,7 +86,8 @@ def browse():
             "name": name,
             "is_dir": is_dir,
             "rel": os.path.join(rel_path, name),
-            "zip_exists": is_dir and os.path.isfile(zip_path)
+            "zip_exists": is_dir and os.path.isfile(zip_path),
+            "size": get_size(full)
         })
 
     parent = os.path.dirname(rel_path) if rel_path else None
@@ -88,11 +107,13 @@ def browse():
             <li>
               {% if e.is_dir %}
                 📁 <a href="/?path={{ e.rel }}">{{ e.name }}</a>
+                <small style="color:#888;">({{ e.size }})</small>
                   {% if e.zip_exists %}
                     [<span style="color:#4CAF50;">Zipped</span>]
                   {% endif %}
               {% else %}
                 🎬 {{ e.name }}
+                <small style="color:#888;">({{ e.size }})</small>
                   {% if not e.name.endswith('.zip') %}
                     [<a href="/stream?path={{ e.rel }}">Stream</a>]
                   {% endif %}
