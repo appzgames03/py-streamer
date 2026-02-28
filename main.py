@@ -3,6 +3,7 @@ import os
 import zipfile
 
 BASE_DIR = "./downloads"
+COMPLETED_DIR = "./completed"
 CHUNK_SIZE = 4096
 
 app = Flask(__name__)
@@ -82,12 +83,15 @@ def browse():
         is_dir = os.path.isdir(full)
         zip_path = os.path.join(current_path, f"{name}.zip")
 
+        marker = os.path.join(COMPLETED_DIR, os.path.join(rel_path, name) + ".completed")
+
         entries.append({
             "name": name,
             "is_dir": is_dir,
             "rel": os.path.join(rel_path, name),
             "zip_exists": is_dir and os.path.isfile(zip_path),
-            "size": get_size(full)
+            "size": get_size(full),
+            "downloaded": os.path.exists(marker)
         })
 
     parent = os.path.dirname(rel_path) if rel_path else None
@@ -108,12 +112,18 @@ def browse():
               {% if e.is_dir %}
                 📁 <a href="/?path={{ e.rel }}">{{ e.name }}</a>
                 <small style="color:#888;">({{ e.size }})</small>
+                  {% if e.downloaded %}
+                    <span style="color:#00ff00;">●</span>
+                  {% endif %}
                   {% if e.zip_exists %}
                     [<span style="color:#4CAF50;">Zipped</span>]
                   {% endif %}
               {% else %}
                 🎬 {{ e.name }}
                 <small style="color:#888;">({{ e.size }})</small>
+                  {% if e.downloaded %}
+                    <span style="color:#00ff00;">●</span>
+                  {% endif %}
                   {% if not e.name.endswith('.zip') %}
                     [<a href="/stream?path={{ e.rel }}">Stream</a>]
                   {% endif %}
