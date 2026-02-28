@@ -126,6 +126,7 @@ def browse():
                   {% endif %}
                   {% if not e.name.endswith('.zip') %}
                     [<a href="/stream?path={{ e.rel }}">Stream</a>]
+                    [<a href="/vlc?path={{ e.rel }}">vlc</a>]
                   {% endif %}
                 [<a href="/download?path={{ e.rel }}">Download</a>]
               {% endif %}
@@ -165,7 +166,7 @@ def stream_page():
         <p><a href="/?path={{ parent }}">⬅ Back</a></p>
 
         <video width="720" controls autoplay>
-          <source src="/video?path={{ rel_path }}" type="video/mp4">
+          <source src="/vlc?path={{ rel_path }}" type="video/mp4">
         </video>
       </body>
     </html>
@@ -180,44 +181,23 @@ def stream_page():
     )
 
 
-@app.route("/video")
+@app.route("/vlc")
 def video_stream():
+    import mimetypes
+
     rel_path = request.args.get("path")
     full_path = safe_path(rel_path)
 
     if not os.path.isfile(full_path):
         abort(404)
 
-    file_size = os.path.getsize(full_path)
-    range_header = request.headers.get("Range")
+    mime = mimetypes.guess_type(full_path)[0] or "application/octet-stream"
 
-    start = 0
-    end = file_size - 1
-
-    if range_header:
-        bytes_range = range_header.replace("bytes=", "").split("-")
-        start = int(bytes_range[0])
-        if bytes_range[1]:
-            end = int(bytes_range[1])
-
-    length = end - start + 1
-
-    def generate():
-        with open(full_path, "rb") as f:
-            f.seek(start)
-            remaining = length
-            while remaining > 0:
-                data = f.read(min(CHUNK_SIZE, remaining))
-                if not data:
-                    break
-                remaining -= len(data)
-                yield data
-
-    response = Response(generate(), status=206, mimetype="video/mp4")
-    response.headers.add("Content-Range", f"bytes {start}-{end}/{file_size}")
-    response.headers.add("Accept-Ranges", "bytes")
-    response.headers.add("Content-Length", str(length))
-    return response
+    return send_file(
+        full_path,
+        mimetype=mime,
+        conditional=True
+    )
 
 
 @app.route("/download")
