@@ -1,6 +1,6 @@
 # py-streamer
 
-```pip install libtorrent flask```
+```pip install libtorrent flask yt_dlp```
 
 ---
 
