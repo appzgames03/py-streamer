@@ -7,4 +7,6 @@ python3 -m pip install --upgrade pip
 # Install required Python packages
 pip install libtorrent flask yt_dlp
 
+sudo apt update
+
 sudo apt install ffmpeg -y
