@@ -3,13 +3,18 @@ import os
 import subprocess
 import time
 import urllib.parse
+import socket
+import random
 
 import libtorrent as lt
 
 
 DEFAULT_START_PORT = 6701
+RANGE_SIZE = 50
 SAVE_PATH = "./downloads"
-TORFILES_PATH = "./torfiles"
+TORFILES_PATH = "./files"
+SEARCH_RANGE_START = 6800
+SEARCH_RANGE_END = 6900
 
 
 def parse_args():
@@ -23,16 +28,71 @@ def parse_args():
 
 def build_start_port(port_suffix):
     if port_suffix is None:
-        return DEFAULT_START_PORT
+        return DEFAULT_START_PORT, DEFAULT_START_PORT + RANGE_SIZE
 
     prefix = str(DEFAULT_START_PORT)[:-2]
     suffix = str(port_suffix).zfill(2)
-    return int(prefix + suffix)
+    start = int(prefix + suffix)
+    end = start + RANGE_SIZE
+    if ports_free(start, end):
+        return start, end
+    print(f"Requested port range ({start},{end}) is in use — selecting an automatic free range")
+    return find_available_port_range()
 
 
-def create_session(start_port):
+def ports_free(start, end):
+    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s1.bind(("", start))
+        s2.bind(("", end))
+        return True
+    except OSError:
+        return False
+    finally:
+        try:
+            s1.close()
+        except Exception:
+            pass
+        try:
+            s2.close()
+        except Exception:
+            pass
+
+
+def find_available_port_range(range_size=RANGE_SIZE):
+    # Search sequentially within a fixed non-ephemeral window to avoid wide scanning.
+    start_min = SEARCH_RANGE_START
+    start_max = SEARCH_RANGE_END - range_size
+    for start in range(start_min, start_max + 1):
+        end = start + range_size
+        s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s1.bind(("", start))
+            s2.bind(("", end))
+            s1.close()
+            s2.close()
+            return start, end
+        except OSError:
+            try:
+                s1.close()
+            except Exception:
+                pass
+            try:
+                s2.close()
+            except Exception:
+                pass
+    raise RuntimeError(f"Could not find a free port range in {start_min}-{SEARCH_RANGE_END}")
+
+
+def create_session(start_port, end_port):
     session = lt.session()
-    session.listen_on(start_port, start_port + 50)
+    session.listen_on(start_port, end_port)
     return session
 
 
@@ -68,8 +128,8 @@ def mark_completed(torrent_name):
     print(f"\033[96mMarked completed\033[0m")
 
 
-def run_magnet_mode(link, start_port):
-    session = create_session(start_port)
+def run_magnet_mode(link, start_port, end_port):
+    session = create_session(start_port, end_port)
     params = {
         'save_path': SAVE_PATH,
         'storage_mode': lt.storage_mode_t.storage_mode_sparse,
@@ -90,10 +150,10 @@ def run_magnet_mode(link, start_port):
     mark_completed(torrent_name)
 
 
-def run_torrent_file_mode(link, start_port):
+def run_torrent_file_mode(link, start_port, end_port):
     torrent_file = download_torrent_file(link)
     os.makedirs(SAVE_PATH, exist_ok=True)
-    session = create_session(start_port)
+    session = create_session(start_port, end_port)
 
     info = lt.torrent_info(torrent_file)
     handle = session.add_torrent({'ti': info, 'save_path': SAVE_PATH})
@@ -108,13 +168,18 @@ def run_torrent_file_mode(link, start_port):
 
 def main():
     args = parse_args()
-    start_port = build_start_port(args.port)
     link = args.link.strip()
 
-    if link.startswith('magnet:'):
-        run_magnet_mode(link, start_port)
+    if args.port is not None:
+        start_port, end_port = build_start_port(args.port)
     else:
-        run_torrent_file_mode(link, start_port)
+        start_port, end_port = find_available_port_range()
+    print(f"Using port range: ({start_port}, {end_port})")
+
+    if link.startswith('magnet:'):
+        run_magnet_mode(link, start_port, end_port)
+    else:
+        run_torrent_file_mode(link, start_port, end_port)
 
 
 if __name__ == '__main__':
