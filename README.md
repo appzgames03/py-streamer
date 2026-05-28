@@ -4,7 +4,7 @@
 
 ---
 
-```python tor.py```
+```python tor.py <torlink / mag link> -p 1```
 
 ---
 
