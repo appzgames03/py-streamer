@@ -8,6 +8,10 @@
 
 ---
 
+``` python3 -m http.server 8000 ```
+
+---
+
 ```wget 'https://example.com/file.zip'```
 
 ---
