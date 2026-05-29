@@ -1,7 +1,18 @@
-import yt_dlp
 import os
+import sys
+import subprocess
+import argparse
 
-video_url = ""
+try:
+    import yt_dlp
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "yt_dlp"])
+    import yt_dlp
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Download a video from a URL using yt-dlp")
+    parser.add_argument('url', help='Video URL to download')
+    return parser.parse_args()
 
 def download_video(url):
     with yt_dlp.YoutubeDL({'outtmpl': 'downloads/%(title)s.%(ext)s'}) as ydl:
@@ -14,4 +25,7 @@ def download_video(url):
 
     print(f"Marked completed: {marker_path}")
 
-download_video(video_url)
+
+if __name__ == '__main__':
+    args = parse_args()
+    download_video(args.url)

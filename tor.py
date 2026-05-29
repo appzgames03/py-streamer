@@ -1,12 +1,17 @@
 import argparse
 import os
+import sys
 import subprocess
 import time
 import urllib.parse
 import socket
 import random
 
-import libtorrent as lt
+try:
+    import libtorrent as lt
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "libtorrent"])
+    import libtorrent as lt
 
 
 DEFAULT_START_PORT = 6701
@@ -110,15 +115,34 @@ def download_torrent_file(torrent_link):
 
 
 def run_download_loop(handle):
+    bar_length = 40  # width of progress bar
+
     while handle.status().state != lt.torrent_status.seeding:
         s = handle.status()
+        progress = s.progress * 100
+
+        # Progress bar
+        filled = int(bar_length * s.progress)
+        bar = "█" * filled + "-" * (bar_length - filled)
+
+        # Clear screen section and redraw
         print(
-            f"Progress: {s.progress * 100:.2f}% | "
+            f"\rProgress: {progress:.2f}% | "
             f"Download: {s.download_rate / 1000:.2f} kB/s | "
             f"Upload: {s.upload_rate / 1000:.2f} kB/s | "
             f"Peers: {s.num_peers}"
         )
+        print(f"[{bar}] {progress:.2f}%", end="", flush=True)
+
+        # Move cursor up one line for next update
+        print("\033[F", end="")
+
         time.sleep(1)
+
+    # Final completed bar
+    full_bar = "█" * bar_length
+    print("\r" + " " * 200)  # clear line
+    print(f"[{full_bar}] 100.00%")
 
 
 def mark_completed(torrent_name):

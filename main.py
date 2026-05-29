@@ -1,6 +1,13 @@
-from flask import *
 import os
 import zipfile
+import sys
+import subprocess
+
+try:
+    from flask import *
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "flask"])
+    from flask import *
 
 BASE_DIR = "./downloads"
 COMPLETED_DIR = "./completed"
