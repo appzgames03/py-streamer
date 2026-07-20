@@ -11,15 +11,23 @@ sudo apt update
 
 sudo apt install ffmpeg -y
 
-# Optionally install the `str` command (stream.py) into ~/.local/bin
+# Optionally install commands into ~/.local/bin
 TARGET_DIR="$HOME/.local/bin"
 mkdir -p "$TARGET_DIR"
+
 if [ -f "stream.py" ]; then
-	chmod +x "stream.py"
-	cp "stream.py" "$TARGET_DIR/str"
-	echo "Installed 'str' to $TARGET_DIR"
-	if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
-		echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-	fi
-	export PATH="$HOME/.local/bin:$PATH"
+  chmod +x "stream.py"
+  cp "stream.py" "$TARGET_DIR/str"
+  echo "Installed 'str' to $TARGET_DIR"
 fi
+
+if [ -f "main.py" ]; then
+  chmod +x "main.py"
+  cp "main.py" "$TARGET_DIR/main"
+  echo "Installed 'main' to $TARGET_DIR"
+fi
+
+if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+fi
+export PATH="$HOME/.local/bin:$PATH"
