@@ -1,24 +1,39 @@
 # py-streamer
 
-```pip install libtorrent flask yt_dlp```
+A collection of streaming and downloading utilities.
 
----
+## Install
 
-```python tor.py <torlink / mag link> -p 1```
+```bash
+./install.sh
+```
 
----
+Installs dependencies and adds three commands to PATH:
 
-``` python3 -m http.server 8000 ```
+- **`tor`** – Torrent downloader (wraps `tor.py`)
+- **`str`** – Video streaming server (wraps `stream.py`)
+- **`main`** – File browser & downloader (wraps `main.py`)
 
----
+## Usage
 
-```wget 'https://example.com/file.zip'```
+### Stream a video with VLC
 
----
+```bash
+str "/path/to/video.mp4"
+```
 
-```sudo apt update```
+Access at: `http://localhost:8000/movie`
 
-```sudo apt install ffmpeg -y```
+### Browse and download files
 
+```bash
+main
+```
 
----
+Access at: `http://localhost:8080` (file browser with stream & download options)
+
+### Download via torrent
+
+```bash
+tor "magnet:..." -p 1
+```
