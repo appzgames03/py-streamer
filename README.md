@@ -5,7 +5,7 @@ A collection of streaming and downloading utilities.
 ## Install
 
 ```bash
-./install.sh
+sh ./install.sh
 ```
 
 Installs dependencies and adds three commands to PATH:
