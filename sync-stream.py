@@ -267,7 +267,7 @@ def snapshot() -> dict[str, Any]:
 
 @app.get("/")
 def index():
-    return '<!doctype html><html><meta http-equiv="refresh" content="0;url=/host"></html>'
+    return '<!doctype html><html><meta http-equiv="refresh" content="0;url=/watch"></html>'
 
 
 @app.get("/host")
