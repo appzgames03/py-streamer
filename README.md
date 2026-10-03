@@ -46,6 +46,11 @@ playback, then open `http://localhost:8080/client` in any number of browsers.
 ffmpeg -i <file-path> -map 0:v -map 0:a:0 -c:v copy -c:a aac -b:a 192k output.mkv
 ```
 
+### See kmv details
+```bash
+mkvmerge -i <file-path>
+```
+
 ### Download via torrent
 
 ```bash
