@@ -11,6 +11,8 @@ sudo apt update
 
 sudo apt install ffmpeg -y
 
+sudo apt install mkvtoolnix
+
 # Optionally install commands into ~/.local/bin
 TARGET_DIR="$HOME/.local/bin"
 mkdir -p "$TARGET_DIR"
