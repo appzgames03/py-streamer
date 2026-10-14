@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — pyst{% endblock %}
+
+{% block extra_head %}
+<style>
+  .hero {
+    margin-bottom: 2rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .card:hover {
+    border-color: #58a6ff;
+    transform: translateY(-2px);
+  }
+  .card h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+  }
+  .card p {
+    font-size: 0.95rem;
+    margin: 0.75rem 0 1.25rem 0;
+    flex-grow: 1;
+  }
+  .stats-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+  }
+  .stats-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .stat-item {
+    border-left: 3px solid var(--accent);
+    padding-left: 0.75rem;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .stat-val {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1>pyst Media Server</h1>
+  <p>Manage, stream, watch together, and download your media library.</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div>
+      <h3>📁 File Browser</h3>
+      <p>Browse media stored in <code>{{ downloads_dir }}</code>, view inline HTML5 video streams, or download files directly.</p>
+    </div>
+    <a href="/browse" class="btn btn-primary">Open Browser →</a>
+  </div>
+
+  <div class="card">
+    <div>
+      <h3>👥 Sync Stream</h3>
+      <p>Synchronized multi-browser watch party. Pick a video to host, or connect other devices to follow shared playback in sync.</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="/sync/host" class="btn btn-primary">Host Watch Party</a>
+      <a href="/sync/watch" class="btn">Join Watch</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div>
+      <h3>📤 Upload Center</h3>
+      <p>Upload individual files or complete directory structures from your browser directly into the server's uploads folder.</p>
+    </div>
+    <a href="/upload" class="btn">Go to Upload →</a>
+  </div>
+</div>
+
+<div class="stats-box">
+  <h3>Storage Overview</h3>
+  <div class="stats-list">
+    <div class="stat-item">
+      <div class="stat-label">Downloads Folder Size</div>
+      <div class="stat-val">{{ downloads_size }}</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Media Files in Library</div>
+      <div class="stat-val">{{ video_count }} files</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Completed Downloads</div>
+      <div class="stat-val">{{ completed_count }} completed</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

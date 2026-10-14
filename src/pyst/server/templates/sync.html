@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — Synchronized Stream — pyst{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sync-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .sync-header {
+    margin-bottom: 1.5rem;
+  }
+  .control-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .picker-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  select {
+    background: #0d1117;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.95rem;
+  }
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  #status {
+    color: var(--accent);
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  .role-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .role-tab {
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+  }
+  .role-tab.active {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--accent);
+    border-color: rgba(88, 166, 255, 0.3);
+  }
+  .player-card {
+    background: #000;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  }
+  video {
+    display: block;
+    width: 100%;
+    max-height: 75vh;
+    background: #000;
+  }
+  #join {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    padding: 0.85rem 1.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  }
+  #join:hover {
+    background: #2ea043;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sync-container" data-role="{{ role }}">
+  <div class="sync-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1>{{ title }} — Synchronized Stream</h1>
+        <p>{{ description }}</p>
+      </div>
+      <div class="role-tabs">
+        <a href="/sync/host" class="role-tab {% if role == 'host' %}active{% endif %}">Host Mode</a>
+        <a href="/sync/watch" class="role-tab {% if role == 'client' %}active{% endif %}">Client Mode</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="control-panel">
+    {% if role == "host" %}
+    <div class="picker-group">
+      <label for="file-picker" style="font-weight: 500;">Select Video:</label>
+      <select id="file-picker">
+        <option value="">Choose a video from downloads...</option>
+        {% for file in files %}
+        <option value="{{ file.path }}">{{ file.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div id="status">Waiting for a video selection...</div>
+  </div>
+
+  <div class="player-card">
+    <button id="join" type="button">▶ Click to Enable Playback</button>
+    <video id="player" controls playsinline></video>
+  </div>
+</div>
+
+<script>
+  const player = document.getElementById("player");
+  const status = document.getElementById("status");
+  const joinButton = document.getElementById("join");
+  const picker = document.getElementById("file-picker");
+  let currentFile = null;
+  let lastSeenRevision = -1;
+  let appliedRevision = -1;
+  let latestState = null;
+  let remotePlaybackEvent = null;
+  let remoteSeekPosition = null;
+  let remoteSeekTimeout = null;
+
+  async function sendControl(action, position = player.currentTime) {
+    try {
+      const response = await fetch("/sync/api/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, position })
+      });
+      if (!response.ok) {
+        status.textContent = `Control update failed (${response.status}).`;
+      }
+    } catch (error) {
+      status.textContent = `Control update failed: ${error.message}`;
+    }
+  }
+
+  player.addEventListener("play", () => {
+    if (remotePlaybackEvent === "play") {
+      remotePlaybackEvent = null;
+      return;
+    }
+    sendControl("play");
+  });
+
+  player.addEventListener("pause", () => {
+    if (remotePlaybackEvent === "pause") {
+      remotePlaybackEvent = null;
+      return;
+    }
+    if (!player.ended) sendControl("pause");
+  });
+
+  player.addEventListener("ended", () => sendControl("pause", player.currentTime));
+
+  player.addEventListener("seeked", () => {
+    if (remoteSeekPosition !== null) {
+      const isRemoteSeek = Math.abs(player.currentTime - remoteSeekPosition) < 0.05;
+      remoteSeekPosition = null;
+      clearTimeout(remoteSeekTimeout);
+      if (isRemoteSeek) return;
+    }
+    if (!player.paused) {
+      remotePlaybackEvent = "pause";
+      player.pause();
+    }
+    sendControl("pause");
+  });
+
+  player.addEventListener("error", () => {
+    if (currentFile) status.textContent = "This browser could not play the selected video.";
+  });
+
+  if (picker) {
+    picker.addEventListener("change", async () => {
+      if (!picker.value) return;
+      try {
+        const response = await fetch("/sync/api/control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "select", file: picker.value })
+        });
+        if (!response.ok) status.textContent = `Could not select video (${response.status}).`;
+      } catch (error) {
+        status.textContent = `Could not select video: ${error.message}`;
+      }
+    });
+  }
+
+  joinButton.addEventListener("click", async () => {
+    joinButton.style.display = "none";
+    try {
+      await player.play();
+    } catch (error) {
+      status.textContent = "Playback could not start. Use the video controls to try again.";
+    }
+  });
+
+  async function applyState(state) {
+    latestState = state;
+    if (state.file !== currentFile) {
+      currentFile = state.file;
+      appliedRevision = -1;
+      if (!player.paused) {
+        remotePlaybackEvent = "pause";
+        player.pause();
+      }
+      player.removeAttribute("src");
+      player.load();
+      if (currentFile) {
+        player.src = `/sync/video?path=${encodeURIComponent(currentFile)}`;
+        player.load();
+        if (picker) picker.value = currentFile;
+        status.textContent = `Playing: ${state.name}`;
+      } else {
+        if (picker) picker.value = "";
+        status.textContent = "Waiting for a video selection...";
+      }
+    }
+    if (!currentFile || player.readyState < 1 || appliedRevision === state.revision) return;
+
+    appliedRevision = state.revision;
+    const targetPosition = Number.isFinite(player.duration)
+      ? Math.min(state.position, player.duration)
+      : state.position;
+    if (Math.abs(player.currentTime - targetPosition) > 0.05) {
+      remoteSeekPosition = targetPosition;
+      clearTimeout(remoteSeekTimeout);
+      remoteSeekTimeout = setTimeout(() => { remoteSeekPosition = null; }, 1000);
+      player.currentTime = targetPosition;
+    }
+
+    if (state.playing && player.paused) {
+      remotePlaybackEvent = "play";
+      try {
+        await player.play();
+        joinButton.style.display = "none";
+      } catch (error) {
+        remotePlaybackEvent = null;
+        joinButton.style.display = "block";
+        status.textContent = "Ready. Click button or play to join shared playback.";
+      }
+    } else if (!state.playing && !player.paused) {
+      remotePlaybackEvent = "pause";
+      player.pause();
+    }
+  }
+
+  async function listenForUpdates() {
+    while (true) {
+      try {
+        const response = await fetch(`/sync/api/state?after=${lastSeenRevision}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`State request failed (${response.status})`);
+        const state = await response.json();
+        lastSeenRevision = state.revision;
+        await applyState(state);
+      } catch (error) {
+        status.textContent = error.message;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  player.addEventListener("loadedmetadata", () => {
+    if (latestState) applyState(latestState);
+  });
+
+  listenForUpdates();
+</script>
+{% endblock %}

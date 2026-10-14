@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyst"
+version = "1.0.0"
+description = "A local media streaming and download toolkit"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0",
+    "click>=8.0",
+    "yt-dlp",
+    "libtorrent",
+]
+
+[project.scripts]
+# pip install creates a `pyst` command in your PATH that calls main() from cli.py
+pyst = "pyst.cli:main"
+
+[tool.hatch.build.targets.wheel]
+# Tell hatchling that the package lives in src/
+packages = ["src/pyst"]

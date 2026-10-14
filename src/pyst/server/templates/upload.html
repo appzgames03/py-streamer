@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Media — pyst{% endblock %}
+
+{% block extra_head %}
+<style>
+  .upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .upload-box {
+    background: var(--card-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 2rem;
+  }
+  .upload-box.dragover {
+    border-color: var(--accent);
+    background: #1c2128;
+  }
+  .upload-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .file-queue {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: none;
+  }
+  .queue-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .queue-item:last-child {
+    border-bottom: none;
+  }
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+  }
+  progress {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  progress::-webkit-progress-bar {
+    background-color: var(--border-color);
+  }
+  progress::-webkit-progress-value {
+    background-color: var(--accent);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+  <h1>Upload Center</h1>
+  <p>Upload individual files or complete folder hierarchies to the server's uploads repository.</p>
+
+  <div class="upload-box" id="dropZone">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📤</div>
+    <h3>Drag and drop files here</h3>
+    <p style="font-size: 0.9rem; margin-top: 0.5rem;">or choose from your device</p>
+
+    <div class="upload-actions">
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Files</button>
+      <button type="button" class="btn" onclick="document.getElementById('folderInput').click()">Select Whole Folder</button>
+    </div>
+
+    <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFiles(this.files)">
+    <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;" onchange="handleFiles(this.files)">
+  </div>
+
+  <div class="file-queue" id="queueContainer">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 0;">Upload Progress</h3>
+      <span id="queueSummary" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+    </div>
+    <div id="queueList"></div>
+  </div>
+</div>
+
+<script>
+  const dropZone = document.getElementById("dropZone");
+  const queueContainer = document.getElementById("queueContainer");
+  const queueList = document.getElementById("queueList");
+  const queueSummary = document.getElementById("queueSummary");
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    if (e.dataTransfer.files.length) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+
+  function handleFiles(files) {
+    if (!files.length) return;
+    queueContainer.style.display = "block";
+    queueList.innerHTML = "";
+    queueSummary.textContent = `${files.length} file(s) selected`;
+
+    for (let i = 0; i < files.length; i++) {
+      uploadSingleFile(files[i], i);
+    }
+  }
+
+  function uploadSingleFile(file, index) {
+    const relPath = file.webkitRelativePath || file.name;
+    const item = document.createElement("div");
+    item.className = "queue-item";
+    item.innerHTML = `
+      <div class="item-header">
+        <span style="font-weight: 500;">${relPath}</span>
+        <span id="status-${index}" style="color: var(--text-muted);">Uploading...</span>
+      </div>
+      <progress id="prog-${index}" value="0" max="100"></progress>
+    `;
+    queueList.appendChild(item);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("relpath", relPath);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/upload", true);
+
+    xhr.upload.onprogress = function(event) {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        document.getElementById(`prog-${index}`).value = percent;
+      }
+    };
+
+    xhr.onload = function() {
+      const statusEl = document.getElementById(`status-${index}`);
+      if (xhr.status === 200) {
+        statusEl.textContent = "✅ Done";
+        statusEl.style.color = "var(--success)";
+      } else {
+        statusEl.textContent = "❌ Failed";
+        statusEl.style.color = "#f85149";
+      }
+    };
+
+    xhr.onerror = function() {
+      const statusEl = document.getElementById(`status-${index}`);
+      statusEl.textContent = "❌ Network Error";
+      statusEl.style.color = "#f85149";
+    };
+
+    xhr.send(formData);
+  }
+</script>
+{% endblock %}

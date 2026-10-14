@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ filename }} — Stream — pyst{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stream-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .video-card {
+    background: #000;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  }
+  video {
+    width: 100%;
+    max-height: 75vh;
+    display: block;
+    background: #000;
+  }
+  .player-meta {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .player-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    word-break: break-all;
+  }
+  .external-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stream-container">
+  <div class="player-header">
+    {% if parent is not none %}
+      <a href="/browse{% if parent %}?path={{ parent }}{% endif %}" class="btn">⬅ Back to Browse</a>
+    {% else %}
+      <span style="color: var(--text-muted); font-size: 0.9rem;">Single-file HTTP Stream</span>
+    {% endif %}
+    {% if rel_path %}
+    <div>
+      <a href="/download?path={{ rel_path }}" class="btn">Download File</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="video-card">
+    <video controls autoplay playsinline preload="metadata">
+      <source src="{% if rel_path %}/play?path={{ rel_path }}{% else %}/movie{% endif %}" type="{{ mime_type }}">
+      Your browser does not support HTML5 video playback.
+    </video>
+    <div class="player-meta">
+      <div>
+        <div class="player-title">{{ filename }}</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">Size: {{ size }} | MIME: {{ mime_type }}</p>
+      </div>
+      <div class="external-actions">
+        <a href="/play?path={{ rel_path }}" class="btn" title="Open directly in VLC or browser tab">Direct Stream URL</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
