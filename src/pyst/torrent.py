@@ -11,7 +11,11 @@ import urllib.parse
 import urllib.request
 
 import click
-import libtorrent as lt
+
+try:
+    import libtorrent as lt
+except ImportError:
+    lt = None  # type: ignore
 
 from pyst import config
 from pyst.utils import mark_completed
@@ -136,6 +140,15 @@ def download_torrent(
     Returns:
         The name of the downloaded torrent.
     """
+    if lt is None:
+        raise RuntimeError(
+            "libtorrent is not installed in this Python environment.\n"
+            "  To use torrent downloads, install libtorrent via pip or system package manager:\n"
+            "    pip install pyst[torrent]\n"
+            "  Or on Ubuntu/Debian:\n"
+            "    sudo apt install python3-libtorrent"
+        )
+
     out_dir = Path(output_dir)
     comp_dir = Path(completed_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
