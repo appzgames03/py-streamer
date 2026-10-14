@@ -87,3 +87,14 @@ def test_sync_video_serving(sync_client):
     # Traversal test
     res_traversal = client.get("/sync/video?path=../../test.txt")
     assert res_traversal.status_code == 403
+
+
+def test_root_sync_endpoints_compatibility(sync_client):
+    """Test that original endpoints (/host, /watch, /client, /api/state) also resolve cleanly."""
+    client, _, _ = sync_client
+
+    assert client.get("/host").status_code == 200
+    assert client.get("/watch").status_code == 200
+    assert client.get("/client").status_code == 200
+    assert client.get("/api/state").status_code == 200
+    assert client.get("/video?path=party.mp4").status_code == 200

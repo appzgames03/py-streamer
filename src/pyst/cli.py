@@ -343,3 +343,66 @@ def zip_cmd(folder: str, output: str | None) -> None:
     except Exception as exc:
         click.echo(f"  {click.style('❌ Zip failed:', fg='red', bold=True)} {exc}", err=True)
         raise SystemExit(1)
+
+
+# ---------------------------------------------------------------------------
+# pyst convert (audio fix for web browsers)
+# ---------------------------------------------------------------------------
+
+@main.command(name="convert")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False))
+@click.option("-o", "--output", default=None, help="Output file path. Defaults to <name>.aac.mkv.")
+@click.option("-a", "--track", default="0:a:0", show_default=True, help="Audio track to convert (e.g. 0:a:0 for first, 0:a:1 for second).")
+def convert_cmd(file: str, output: str | None, track: str) -> None:
+    """Convert video audio to AAC for universal browser playback.
+
+    \b
+    Web browsers do not support AC3/EAC3/DTS audio codecs.
+    This command copies video without re-encoding (-c:v copy)
+    and converts audio to AAC (-c:a aac) in seconds.
+
+    \b
+    Example:
+      pyst convert ./downloads/movie.mkv
+      pyst convert ./downloads/movie.mkv -a 0:a:1
+    """
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    if not shutil.which("ffmpeg"):
+        click.echo(click.style("  ❌ ffmpeg is not installed or not in PATH.", fg="red", bold=True))
+        click.echo("  Install ffmpeg using winget (Windows), brew (macOS), or apt (Ubuntu).")
+        raise SystemExit(1)
+
+    in_path = Path(file).resolve()
+    if output:
+        out_path = Path(output).resolve()
+    else:
+        out_path = in_path.parent / f"{in_path.stem}.aac{in_path.suffix}"
+
+    click.echo(f"  {click.style('🎬', fg='cyan')} Converting audio for: {in_path.name}")
+    click.echo(f"  {click.style('🔊', fg='yellow')} Audio track: {track} -> AAC 192k")
+    click.echo(f"  {click.style('📁', fg='cyan')} Output: {out_path}")
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(in_path),
+        "-map", "0:v",
+        "-map", track,
+        "-c:v", "copy",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        str(out_path),
+    ]
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            click.echo(click.style(f"  ❌ ffmpeg conversion failed:\n{proc.stderr}", fg="red"))
+            raise SystemExit(1)
+        click.echo(click.style(f"  ✅ Audio converted successfully! Saved to: {out_path}", fg="green", bold=True))
+    except Exception as exc:
+        click.echo(click.style(f"  ❌ Conversion error: {exc}", fg="red"))
+        raise SystemExit(1)
+

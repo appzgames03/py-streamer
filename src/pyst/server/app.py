@@ -28,12 +28,13 @@ def create_app(config: Mapping[str, Any] | None = None) -> Flask:
     # Register blueprints
     from pyst.server.browse import browse_bp
     from pyst.server.streaming import streaming_bp
-    from pyst.server.sync import sync_bp
+    from pyst.server.sync import root_sync_bp, sync_bp
     from pyst.server.upload import upload_bp
 
     app.register_blueprint(browse_bp)
     app.register_blueprint(streaming_bp)
     app.register_blueprint(sync_bp)
+    app.register_blueprint(root_sync_bp)
     app.register_blueprint(upload_bp)
 
     # Register custom error handlers

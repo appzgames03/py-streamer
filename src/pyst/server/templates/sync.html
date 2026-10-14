@@ -4,26 +4,19 @@
 
 {% block extra_head %}
 <style>
-  .sync-container {
+  .sync-wrapper {
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 1.5rem auto;
   }
-  .sync-header {
-    margin-bottom: 1.5rem;
+  h1 {
+    margin-bottom: 0.35rem;
   }
-  .control-panel {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
+  .sync-desc {
+    color: var(--text-muted);
     margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
   }
-  .picker-group {
+  .picker-container {
+    margin: 1rem 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -34,7 +27,7 @@
     color: var(--text-color);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    padding: 0.45rem 0.85rem;
+    padding: 0.55rem 0.8rem;
     font-size: 0.95rem;
   }
   select:focus {
@@ -42,105 +35,88 @@
     border-color: var(--accent);
   }
   #status {
-    color: var(--accent);
-    font-size: 0.95rem;
+    min-height: 1.5em;
+    color: #9ed0ff;
     font-weight: 500;
+    margin: 0.75rem 0;
   }
-  .role-tabs {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .role-tab {
-    padding: 0.35rem 0.75rem;
+  #audio-notice {
+    display: none;
+    background: rgba(210, 153, 34, 0.15);
+    border: 1px solid rgba(210, 153, 34, 0.4);
+    color: #e3b341;
     border-radius: 6px;
-    font-size: 0.85rem;
-    text-decoration: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0 1rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
-  .role-tab.active {
-    background: rgba(88, 166, 255, 0.15);
-    color: var(--accent);
-    border-color: rgba(88, 166, 255, 0.3);
+  #audio-notice code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    color: #fff;
   }
-  .player-card {
-    background: #000;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  #join {
+    display: none;
+    margin-bottom: 1rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: #238636;
+    color: #fff;
+    border: 1px solid rgba(240, 246, 252, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #join:hover {
+    background: #2ea043;
   }
   video {
     display: block;
     width: 100%;
     max-height: 75vh;
+    margin-top: 1rem;
     background: #000;
-  }
-  #join {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    padding: 0.85rem 1.75rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    background: #238636;
-    color: #fff;
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-  }
-  #join:hover {
-    background: #2ea043;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="sync-container" data-role="{{ role }}">
-  <div class="sync-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <h1>{{ title }} — Synchronized Stream</h1>
-        <p>{{ description }}</p>
-      </div>
-      <div class="role-tabs">
-        <a href="/sync/host" class="role-tab {% if role == 'host' %}active{% endif %}">Host Mode</a>
-        <a href="/sync/watch" class="role-tab {% if role == 'client' %}active{% endif %}">Client Mode</a>
-      </div>
-    </div>
-  </div>
+<div class="sync-wrapper" data-role="{{ role }}">
+  <h1>{{ title }}</h1>
+  <p class="sync-desc">{{ description }}</p>
 
-  <div class="control-panel">
-    {% if role == "host" %}
-    <div class="picker-group">
-      <label for="file-picker" style="font-weight: 500;">Select Video:</label>
-      <select id="file-picker">
-        <option value="">Choose a video from downloads...</option>
-        {% for file in files %}
-        <option value="{{ file.path }}">{{ file.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    {% endif %}
-    <div id="status">Waiting for a video selection...</div>
+  {% if role == "host" %}
+  <div class="picker-container">
+    <label for="file-picker" style="font-weight: 500;">Video from downloads: </label>
+    <select id="file-picker">
+      <option value="">Choose a video...</option>
+      {% for file in files %}
+      <option value="{{ file.path }}">{{ file.name }}</option>
+      {% endfor %}
+    </select>
   </div>
+  {% endif %}
 
-  <div class="player-card">
-    <button id="join" type="button">▶ Click to Enable Playback</button>
-    <video id="player" controls playsinline></video>
-  </div>
+  <div id="audio-notice"></div>
+
+  <p id="status">Waiting for a video selection...</p>
+  <button id="join" type="button">Enable playback</button>
+
+  <video id="player" controls playsinline></video>
 </div>
 
 <script>
+  const basePath = window.location.pathname.startsWith('/sync') ? '/sync' : '';
   const player = document.getElementById("player");
   const status = document.getElementById("status");
   const joinButton = document.getElementById("join");
   const picker = document.getElementById("file-picker");
+  const audioNotice = document.getElementById("audio-notice");
   let currentFile = null;
   let lastSeenRevision = -1;
   let appliedRevision = -1;
@@ -151,7 +127,7 @@
 
   async function sendControl(action, position = player.currentTime) {
     try {
-      const response = await fetch("/sync/api/control", {
+      const response = await fetch(basePath + "/api/control", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, position })
@@ -204,7 +180,7 @@
     picker.addEventListener("change", async () => {
       if (!picker.value) return;
       try {
-        const response = await fetch("/sync/api/control", {
+        const response = await fetch(basePath + "/api/control", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "select", file: picker.value })
@@ -237,13 +213,23 @@
       player.removeAttribute("src");
       player.load();
       if (currentFile) {
-        player.src = `/sync/video?path=${encodeURIComponent(currentFile)}`;
+        player.src = `${basePath}/video?path=${encodeURIComponent(currentFile)}`;
         player.load();
         if (picker) picker.value = currentFile;
-        status.textContent = `Playing: ${state.name}`;
+        status.textContent = `Selected: ${state.name}`;
+
+        if (audioNotice) {
+          if (state.unsupported_audio) {
+            audioNotice.style.display = "block";
+            audioNotice.innerHTML = `⚠️ <strong>Audio Codec Warning (${(state.audio_codec || '').toUpperCase()})</strong>: Browsers do not support AC3/DTS audio. If there is no sound, convert to AAC:<br><code>pyst convert "${state.file}"</code>`;
+          } else {
+            audioNotice.style.display = "none";
+          }
+        }
       } else {
         if (picker) picker.value = "";
         status.textContent = "Waiting for a video selection...";
+        if (audioNotice) audioNotice.style.display = "none";
       }
     }
     if (!currentFile || player.readyState < 1 || appliedRevision === state.revision) return;
@@ -266,8 +252,8 @@
         joinButton.style.display = "none";
       } catch (error) {
         remotePlaybackEvent = null;
-        joinButton.style.display = "block";
-        status.textContent = "Ready. Click button or play to join shared playback.";
+        joinButton.style.display = "inline-block";
+        status.textContent = "Playback is ready. Click Enable playback to allow this browser to play.";
       }
     } else if (!state.playing && !player.paused) {
       remotePlaybackEvent = "pause";
@@ -278,7 +264,7 @@
   async function listenForUpdates() {
     while (true) {
       try {
-        const response = await fetch(`/sync/api/state?after=${lastSeenRevision}`, { cache: "no-store" });
+        const response = await fetch(`${basePath}/api/state?after=${lastSeenRevision}`, { cache: "no-store" });
         if (!response.ok) throw new Error(`State request failed (${response.status})`);
         const state = await response.json();
         lastSeenRevision = state.revision;
@@ -293,7 +279,6 @@
   player.addEventListener("loadedmetadata", () => {
     if (latestState) applyState(latestState);
   });
-
   listenForUpdates();
 </script>
 {% endblock %}
